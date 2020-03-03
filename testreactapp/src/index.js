@@ -128,7 +128,7 @@ console.log(store.getState());
 export default class App extends React.Component {
     componentDidMount() {
         alert('method worked');
-        fetch("https://api.github.com/users/GitGudLater/repos")
+        fetch(`https://api.github.com/users/${this.props.userLogin}/repos`)
           .then(res => res.json())
           .then(
             (result) => {
