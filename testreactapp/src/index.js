@@ -10,10 +10,10 @@ const initialState ={
     login: 'incognito',
     password: '101010',
     user: {
-        "login": " ",
-        "id": 0,
-        "node_id": "0",
-        "avatar_url": "0",
+        login: " ",
+        id: 0,
+        node_id: "0",
+        avatar_url: "0",
         "gravatar_id": "",
         "url": "0",
         "html_url": "0",
@@ -43,7 +43,7 @@ const initialState ={
         "updated_at": "2020-03-02T10:48:15Z"
     },
     isLoaded: true,
-    repositories: []
+    repositories: [{name:"undefined"}]
   };
   
 //action types  
@@ -51,8 +51,6 @@ const ACTION_CHANGE_LOGIN ='ACTION_CHANGE_LOGIN';
 const ACTION_CHANGE_PASSWORD = 'ACTION_CHANGE_PASSWORD';
 const ACTION_CATCHED_USER_PROFILE = 'ACTION_CATCHED_USER_PROFILE';
 const ACTION_CATCHED_REPOSITORIES = 'ACTION_CATCHED_REPOSITORIES';
-
-
 
 
   /*const actionChangeLogin = {
@@ -127,26 +125,21 @@ console.log(store.getState());
   
 
 
-class RepositoriesList extends React.Component {
-    render(){
-        const {repositories} = this.props;
-        return(
-            <ul>
-                {repositories.map(item => (
-                    <li key={item.name}>
-                        {item.name} 
-                    </li>
-                ))}
-            </ul>
-        )
-    }
-}
-
 export default class App extends React.Component {
+    componentDidMount() {
+        alert('method worked');
+        fetch("https://api.github.com/users/GitGudLater/repos")
+          .then(res => res.json())
+          .then(
+            (result) => {
+              loadedRepositories(result);
+            }           
+          )
+    };
     render(){
         console.log(this.props)
         //const dispatch = this.props.dispatch;
-        const {login,password,changeLogin,changePassword,user} = this.props;//destructor
+        const {login,password,changeLogin,changePassword,user,repositories} = this.props;//destructor
         const authorizeUser = (userLogin) => {
             fetch(`https://api.github.com/users/${userLogin}`).then(response => response.json()).then(userProfile => this.props.verrifiedUser(userProfile));
         }
@@ -155,7 +148,7 @@ export default class App extends React.Component {
             <h2>Sign In</h2>
             <form>
                 <div>
-                <input type="text" onChange={(event) => {/*dispatch(changeLogin(event.target.value))*/changeLogin(event.target.value)}} value={login} name="login" placeholder="E-mail"/>
+                <input type="text" onChange={(event) => {/*dispatch(changeLogin(event.target.value))*/changeLogin(event.target.value)}} value={login} name="login" placeholder="login"/>
                 </div>
                 <div>
                 <input type="password" onChange={(event) => {/*dispatch(changePassword(event.target.value))*/changePassword(event.target.value)}} value={password} name="password" placeholder="Password"/>
@@ -170,6 +163,15 @@ export default class App extends React.Component {
                 </div>
                 <div>{user.name}</div>
             </form>
+            <div>
+            <ul>
+                {repositories.map(item => (
+                    <li key={item.name}>
+                        {item.name} 
+                    </li>
+                ))}
+            </ul>
+            </div>
             </div>
             
         );
