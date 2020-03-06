@@ -43,7 +43,7 @@ const initialState ={
         "updated_at": "2020-03-02T10:48:15Z"
     },
     isLoaded: true,
-    repositories: [{name:"undefined"}]
+    repositories: [/*{name:"undefined"}*/]
   };
   
 //action types  
@@ -126,23 +126,36 @@ console.log(store.getState());
 
 
 export default class App extends React.Component {
-    componentDidMount() {
-        alert('method worked');
-        fetch(`https://api.github.com/users/${this.props.userLogin}/repos`)
-          .then(res => res.json())
+    
+    constructor(props) {
+        super(props);
+        this.authorizeUser = this.authorizeUser.bind(this);
+    }
+
+    authorizeUser(e,userLogin) {
+        e.preventDefault();
+        fetch(`https://api.github.com/users/${userLogin}`).then(response => response.json()).then(userProfile => this.props.verrifiedUser(userProfile));
+    };
+
+    componentDidUpdate() {
+        const { loadedRepositories} = this.props;
+        console.log(this.props);
+        fetch(`https://api.github.com/users/${this.props.login}/repos`)
+          .then(res =>res.json())
           .then(
             (result) => {
-              loadedRepositories(result);
+            
+              loadedRepositories(result)
             }           
           )
+        //alert('method worked');
     };
+
     render(){
-        console.log(this.props)
+        //console.log(this.props)
         //const dispatch = this.props.dispatch;
         const {login,password,changeLogin,changePassword,user,repositories} = this.props;//destructor
-        const authorizeUser = (userLogin) => {
-            fetch(`https://api.github.com/users/${userLogin}`).then(response => response.json()).then(userProfile => this.props.verrifiedUser(userProfile));
-        }
+
         return (
             <div className="auth">
             <h2>Sign In</h2>
@@ -156,7 +169,7 @@ export default class App extends React.Component {
                 <div>
                 <button /*onClick={}*/>Sign In</button>
                 <button>Sign Out</button>
-                <button onClick={authorizeUser(login)}>Get Info</button>
+                <button onClick={(event)=>this.authorizeUser(event,login)}>Get Info</button>
                 </div>
                 <div>
                     Login: <b>{login}</b> Password: <b>{password}</b>
