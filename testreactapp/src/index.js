@@ -10,7 +10,8 @@ const initialState ={
     login: 'incognito',
     password: '101010',
     user: {
-        login: " ",
+        name: " "
+        /*login: " ",
         id: 0,
         node_id: "0",
         avatar_url: "0",
@@ -40,9 +41,10 @@ const initialState ={
         "followers": 54,
         "following": 30,
         "created_at": "2010-08-28T22:13:36Z",
-        "updated_at": "2020-03-02T10:48:15Z"
+        "updated_at": "2020-03-02T10:48:15Z"*/
     },
-    isLoaded: true,
+    userToken: {},
+    isLoaded: false,
     repositories: [/*{name:"undefined"}*/]
   };
   
@@ -51,6 +53,7 @@ const ACTION_CHANGE_LOGIN ='ACTION_CHANGE_LOGIN';
 const ACTION_CHANGE_PASSWORD = 'ACTION_CHANGE_PASSWORD';
 const ACTION_CATCHED_USER_PROFILE = 'ACTION_CATCHED_USER_PROFILE';
 const ACTION_CATCHED_REPOSITORIES = 'ACTION_CATCHED_REPOSITORIES';
+const ACTION_CATCHED_USER_TOKEN = 'ACTION_CATCHED_USER_TOKEN';
 
 
   /*const actionChangeLogin = {
@@ -62,6 +65,17 @@ const ACTION_CATCHED_REPOSITORIES = 'ACTION_CATCHED_REPOSITORIES';
     type: ACTION_CHANGE_PASSWORD,
     payload:null
   }*/
+
+
+//wrapped action  
+const catchedUserToken = (token) =>{
+    //console.log(newLogin);
+    return{
+        type: ACTION_CATCHED_USER_TOKEN,
+        payload:token
+        };
+    };
+
 
 //wrapped action  
 const changeLogin = (newLogin) =>{
@@ -102,7 +116,7 @@ const loadedRepositories = (repositories) =>{
     };
     
 //reducer that get store in argument and return store as result
-//??He can be called every moment after component rendered(ComponentDidMount()) and search wich action is happend
+//??He can be called every moment after component rendered(ComponentDidMount()/DidUpdate()) and search wich action is happend
 //??after this he change components state in such cases:D 
 const rootReducer = (state = initialState, action) => {
     switch (action.type){
@@ -111,9 +125,11 @@ const rootReducer = (state = initialState, action) => {
         case ACTION_CHANGE_PASSWORD:
             return {...state, password: action.payload};//saves previous states with new values
         case ACTION_CATCHED_USER_PROFILE:
-            return {...state, user: action.payload}
+            return {...state, user: action.payload};
         case ACTION_CATCHED_REPOSITORIES:
-            return {...state, repositories:action.payload}
+            return {...state, repositories:action.payload};
+        case ACTION_CATCHED_USER_TOKEN:
+            return {...state, userToken:action.payload};
     }
     return state
 }
@@ -129,26 +145,51 @@ export default class App extends React.Component {
     
     constructor(props) {
         super(props);
-        this.authorizeUser = this.authorizeUser.bind(this);
+        this.catchUserProfile = this.catchUserProfile.bind(this);
+        
     }
 
-    authorizeUser(e,userLogin) {
+    catchUserToken(e,userLogin,userPassword){
+        //e.preventDefault();
+        //fetch();
+        alert(`user token request for user ${userLogin} with password ${userPassword} will be added soon with fetch function`);
+    }
+
+    catchUserProfile(e,userLogin) {
+        const { loadedRepositories} = this.props;
         e.preventDefault();
-        fetch(`https://api.github.com/users/${userLogin}`).then(response => response.json()).then(userProfile => this.props.verrifiedUser(userProfile));
+        fetch(`https://api.github.com/users/${userLogin}`)
+            .then(response => response.json())
+            .then(userProfile => {
+                this.props.verrifiedUser(userProfile);
+                //fetch(`https://api.github.com/users/${userProfile.login}/repos`)
+                }
+            );
+            /*.then(res =>res.json())
+            .then(
+                (result) => {
+                  loadedRepositories(result)
+                }           
+              )*/
+        fetch(`https://api.github.com/users/${userLogin}/repos`)
+            .then(response => response.json())
+            .then((result) => {
+                loadedRepositories(result)
+              })
+
     };
 
     componentDidUpdate() {
+        /*
         const { loadedRepositories} = this.props;
         console.log(this.props);
         fetch(`https://api.github.com/users/${this.props.login}/repos`)
           .then(res =>res.json())
           .then(
             (result) => {
-            
               loadedRepositories(result)
             }           
-          )
-        //alert('method worked');
+          )*/
     };
 
     render(){
@@ -167,9 +208,9 @@ export default class App extends React.Component {
                 <input type="password" onChange={(event) => {/*dispatch(changePassword(event.target.value))*/changePassword(event.target.value)}} value={password} name="password" placeholder="Password"/>
                 </div>
                 <div>
-                <button /*onClick={}*/>Sign In</button>
+                <button /*onClick={(event) => this.catchUserToken(event,login,password)}*/>Sign In</button>
                 <button>Sign Out</button>
-                <button onClick={(event)=>this.authorizeUser(event,login)}>Get Info</button>
+                <button onClick={(event)=>this.catchUserProfile(event,login)}>Get Info</button>
                 </div>
                 <div>
                     Login: <b>{login}</b> Password: <b>{password}</b>
@@ -202,7 +243,8 @@ const putStateToProps = (state) =>{
         password: state.password,
         user: state.user,
         isLoaded: state.isLoaded,
-        repositories: state.repositories
+        repositories: state.repositories,
+        userToken: state.userToken
     };
 };
 
@@ -215,7 +257,8 @@ const putActionsToProps = (dispatch) => {
         changeLogin: bindActionCreators(changeLogin, dispatch),
         changePassword: bindActionCreators(changePassword, dispatch),
         verrifiedUser: bindActionCreators(verrifiedUser, dispatch),
-        loadedRepositories: bindActionCreators(loadedRepositories, dispatch)
+        loadedRepositories: bindActionCreators(loadedRepositories, dispatch),
+        catchedUserToken: bindActionCreators(catchedUserToken, dispatch)
     };
 };
 
