@@ -7,8 +7,8 @@ import {createStore,bindActionCreators} from 'redux';
 
 //initial component states for reduser
 const initialState ={
-    login: 'incognito',
-    password: '101010',
+    login: '',
+    password: '',
     user: {
         name: " "
         /*login: " ",
@@ -43,9 +43,11 @@ const initialState ={
         "created_at": "2010-08-28T22:13:36Z",
         "updated_at": "2020-03-02T10:48:15Z"*/
     },
+    userSecret: {},
     userToken: {},
     isLoaded: false,
-    repositories: [/*{name:"undefined"}*/]
+    userRepositories: [/*{name:"undefined"}*/],
+    globalRepositoriesList: []
   };
   
 //action types  
@@ -54,6 +56,8 @@ const ACTION_CHANGE_PASSWORD = 'ACTION_CHANGE_PASSWORD';
 const ACTION_CATCHED_USER_PROFILE = 'ACTION_CATCHED_USER_PROFILE';
 const ACTION_CATCHED_REPOSITORIES = 'ACTION_CATCHED_REPOSITORIES';
 const ACTION_CATCHED_USER_TOKEN = 'ACTION_CATCHED_USER_TOKEN';
+const ACTION_CATCHED_GLOBAL_REPOSITORIES = 'ACTION_CATCHED_GLOBAL_REPOSITORIES';
+const ACTION_PRESS_SIGNIN_BUTTON = 'ACTION_PRESS_SIGNIN_BUTTON';
 
 
   /*const actionChangeLogin = {
@@ -67,9 +71,28 @@ const ACTION_CATCHED_USER_TOKEN = 'ACTION_CATCHED_USER_TOKEN';
   }*/
 
 
+//wrapper action
+const pressedSignInButton = () =>{
+    //console.log(repositories);
+    return{
+        type: ACTION_PRESS_SIGNIN_BUTTON,
+        payload: null
+        };
+    };
+
+
+//wrapper action
+const loadedGlobalRepositories = (repositories) =>{
+    //console.log(repositories);
+    return{
+        type: ACTION_CATCHED_GLOBAL_REPOSITORIES,
+        payload: repositories
+        };
+    };
+
 //wrapped action  
 const catchedUserToken = (token) =>{
-    //console.log(newLogin);
+    //console.log(token);
     return{
         type: ACTION_CATCHED_USER_TOKEN,
         payload:token
@@ -99,7 +122,7 @@ const changePassword = (newPassword) =>{
 
 //wrapped action    
 const verrifiedUser = (user) =>{
-    //console.log(newPassword);
+    //console.log(user);
     return{
         type: ACTION_CATCHED_USER_PROFILE,
         payload: user
@@ -108,7 +131,7 @@ const verrifiedUser = (user) =>{
 
 
 const loadedRepositories = (repositories) =>{
-    //console.log(newPassword);
+    //console.log(repositories);
     return{
         type: ACTION_CATCHED_REPOSITORIES,
         payload: repositories
@@ -127,9 +150,13 @@ const rootReducer = (state = initialState, action) => {
         case ACTION_CATCHED_USER_PROFILE:
             return {...state, user: action.payload};
         case ACTION_CATCHED_REPOSITORIES:
-            return {...state, repositories:action.payload};
+            return {...state, userRepositories:action.payload};
         case ACTION_CATCHED_USER_TOKEN:
             return {...state, userToken:action.payload};
+        case ACTION_CATCHED_GLOBAL_REPOSITORIES:
+            return {...state, globalRepositoriesList:action.payload};
+        case ACTION_PRESS_SIGNIN_BUTTON:
+            return {...state};
     }
     return state
 }
@@ -137,7 +164,7 @@ const rootReducer = (state = initialState, action) => {
   //STORE
 const store = createStore(rootReducer);
   
-console.log(store.getState());
+//console.log(store.getState());
   
 
 
@@ -146,12 +173,18 @@ export default class App extends React.Component {
     constructor(props) {
         super(props);
         this.catchUserProfile = this.catchUserProfile.bind(this);
-        
+        this.loadGlobalRepositories = this.loadGlobalRepositories.bind(this);
+        this.loadedGlobalRepositoriesNoAction = this.loadedGlobalRepositoriesNoAction.bind(this);
+
+        this.loadGlobalRepositories();
+
     }
 
     catchUserToken(e,userLogin,userPassword){
-        //e.preventDefault();
+        const {pressedSignInButton} = this.props;
+        e.preventDefault();
         //fetch();
+        pressedSignInButton();
         alert(`user token request for user ${userLogin} with password ${userPassword} will be added soon with fetch function`);
     }
 
@@ -179,6 +212,21 @@ export default class App extends React.Component {
 
     };
 
+    loadGlobalRepositories(){
+        fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
+        .then(response => response.json())
+        .then((result) => {
+            loadedGlobalRepositories(result)
+          })
+    }
+
+    loadedGlobalRepositoriesNoAction(){
+        fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
+        .then(response => response.json())
+    }
+
+
+
     componentDidUpdate() {
         /*
         const { loadedRepositories} = this.props;
@@ -195,8 +243,8 @@ export default class App extends React.Component {
     render(){
         //console.log(this.props)
         //const dispatch = this.props.dispatch;
-        const {login,password,changeLogin,changePassword,user,repositories} = this.props;//destructor
-
+        const {login,password,changeLogin,changePassword,user,userRepositories, globalRepositoriesList} = this.props;//destructor
+        console.log(this.props);
         return (
             <div className="auth">
             <h2>Sign In</h2>
@@ -208,8 +256,7 @@ export default class App extends React.Component {
                 <input type="password" onChange={(event) => {/*dispatch(changePassword(event.target.value))*/changePassword(event.target.value)}} value={password} name="password" placeholder="Password"/>
                 </div>
                 <div>
-                <button /*onClick={(event) => this.catchUserToken(event,login,password)}*/>Sign In</button>
-                <button>Sign Out</button>
+                <button onClick={(event) => this.catchUserToken(event,login,password)}>Sign In</button>
                 <button onClick={(event)=>this.catchUserProfile(event,login)}>Get Info</button>
                 </div>
                 <div>
@@ -218,13 +265,24 @@ export default class App extends React.Component {
                 <div>{user.name}</div>
             </form>
             <div>
-            <ul>
-                {repositories.map(item => (
-                    <li key={item.name}>
-                        {item.name} 
-                    </li>
-                ))}
-            </ul>
+                Repositories that this person owned
+                <ul>
+                    {userRepositories.map(item => (
+                        <li key={item.name}>
+                            {item.name}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div>
+                Top tier of repositories with highest numbers of stars
+                    <ul>
+                        {globalRepositoriesList.map(item => (
+                            <li key={item.name}>
+                                Repository '{item.name}' created by owner {item.owner.login}
+                            </li>
+                        ))}
+                    </ul>
             </div>
             </div>
             
@@ -237,14 +295,15 @@ export default class App extends React.Component {
 //Wrapper  
 //Steal values from state and add them to properties(props)  
 const putStateToProps = (state) =>{
-    console.log(state);
+    //console.log(state);
     return{
         login: state.login,
         password: state.password,
         user: state.user,
         isLoaded: state.isLoaded,
-        repositories: state.repositories,
-        userToken: state.userToken
+        userRepositories: state.userRepositories,
+        userToken: state.userToken,
+        globalRepositoriesList: state.globalRepositoriesList
     };
 };
 
@@ -258,7 +317,9 @@ const putActionsToProps = (dispatch) => {
         changePassword: bindActionCreators(changePassword, dispatch),
         verrifiedUser: bindActionCreators(verrifiedUser, dispatch),
         loadedRepositories: bindActionCreators(loadedRepositories, dispatch),
-        catchedUserToken: bindActionCreators(catchedUserToken, dispatch)
+        catchedUserToken: bindActionCreators(catchedUserToken, dispatch),
+        loadedGlobalRepositories: bindActionCreators(loadedGlobalRepositories, dispatch),
+        pressedSignInButton: bindActionCreators(pressedSignInButton, dispatch)
     };
 };
 
