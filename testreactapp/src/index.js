@@ -170,14 +170,17 @@ const store = createStore(rootReducer);
 
 export default class App extends React.Component {
     
+
     constructor(props) {
         super(props);
         this.catchUserProfile = this.catchUserProfile.bind(this);
         this.loadGlobalRepositories = this.loadGlobalRepositories.bind(this);
         this.loadedGlobalRepositoriesNoAction = this.loadedGlobalRepositoriesNoAction.bind(this);
-
-        this.loadGlobalRepositories();
-
+        this.state = {
+            globalRepositoriesList: null,
+            isLoaded: false
+        }
+        //this.loadGlobalRepositories();
     }
 
     catchUserToken(e,userLogin,userPassword){
@@ -225,26 +228,33 @@ export default class App extends React.Component {
         .then(response => response.json())
     }
 
+    componentDidMount(){
+        //this.setState({globalRepositoriesList: this.loadedGlobalRepositoriesNoAction()})
+        fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
+        .then(response => response.json())
+        .then(result => {
+            this.setState({
+                globalRepositoriesList: result,
+                isLoaded:true
+            })
+        })
+    }
 
-
-    componentDidUpdate() {
-        /*
-        const { loadedRepositories} = this.props;
-        console.log(this.props);
-        fetch(`https://api.github.com/users/${this.props.login}/repos`)
-          .then(res =>res.json())
-          .then(
-            (result) => {
-              loadedRepositories(result)
-            }           
-          )*/
-    };
 
     render(){
         //console.log(this.props)
         //const dispatch = this.props.dispatch;
-        const {login,password,changeLogin,changePassword,user,userRepositories, globalRepositoriesList} = this.props;//destructor
-        console.log(this.props);
+        const {globalRepositoriesList,isLoaded} = this.state;
+        const {login,password,changeLogin,changePassword,user,userRepositories/*, globalRepositoriesList*/} = this.props;//destructor
+        const globalList = isLoaded ? 
+        <ul>
+            {globalRepositoriesList.items.map(item => (
+                <li key={item.name}>
+                    Repository '{item.name}' created by owner {item.owner.login}
+                </li>
+            ))}
+        </ul> : "loading..." ;
+        console.log(this.state);
         return (
             <div className="auth">
             <h2>Sign In</h2>
@@ -276,13 +286,7 @@ export default class App extends React.Component {
             </div>
             <div>
                 Top tier of repositories with highest numbers of stars
-                    <ul>
-                        {globalRepositoriesList.map(item => (
-                            <li key={item.name}>
-                                Repository '{item.name}' created by owner {item.owner.login}
-                            </li>
-                        ))}
-                    </ul>
+                    {globalList}
             </div>
             </div>
             
