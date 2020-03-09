@@ -177,15 +177,9 @@ const rootReducer = (state = initialState, action) => {
         case ACTION_CHANGE_PASSWORD:
             return {...state, password: action.payload};//saves previous states with new values
         case ACTION_CATCHED_USER_PROFILE:
-            {
-                console.log(action.payload);
-                return {...state, user: action.payload};
-            }
+            return {...state, user: action.payload};
         case ACTION_CATCHED_REPOSITORIES:
-            {
-                console.log(action.payload);
-                return {...state, userRepositories:action.payload};
-            }
+            return {...state, userRepositories:action.payload};
         case ACTION_CATCHED_USER_TOKEN:
             return {...state, userToken:action.payload};
         case ACTION_CATCHED_GLOBAL_REPOSITORIES:
@@ -212,10 +206,8 @@ sagaMiddleware.run(rootSaga);
 
   
 function* fetchUser(action) {
-    //alert('fetch user works');
     const result =yield fetch(`https://api.github.com/users/${action.payload}`)
                 .then(response => response.json());
-    //console.log(result);
     yield put(verrifiedUser(result));
  }
 
@@ -235,10 +227,6 @@ function* userSaga() {
     yield takeEvery(ACTION_USER_REPOSITORIES_FETCH_REQUESTED,fetchUserRepositories)
   }
 
-/*function* checksaga() {
-    const result =  fetch(`https://api.github.com/users/GitGudLater`).then(response => response.json());
-    console.log(result);
-}*/
 
 function* rootSaga() {
     yield all([
@@ -260,7 +248,6 @@ export default class App extends React.Component {
             globalRepositoriesList: null,
             isLoaded: false
         }
-        //this.loadGlobalRepositories();
     }
 
     catchUserToken(e,userLogin,userPassword){
@@ -293,7 +280,6 @@ export default class App extends React.Component {
     }
 
     componentDidMount(){
-        //this.setState({globalRepositoriesList: this.loadedGlobalRepositoriesNoAction()})
         fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
         .then(response => response.json())
         .then(result => {
