@@ -3,14 +3,20 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 import {Provider,connect} from 'react-redux';
-import {createStore,bindActionCreators} from 'redux';
+import {createStore,bindActionCreators,applyMiddleware} from 'redux';
+import createSagaMiddleware from 'redux-saga';
+import { all ,call, put, takeEvery, takeLatest } from 'redux-saga/effects'
+import { composeWithDevTools } from 'redux-devtools-extension';
+
+
 
 //initial component states for reduser
 const initialState ={
     login: '',
     password: '',
     user: {
-        name: " "
+        name: "",
+        avatar_url: ""
         /*login: " ",
         id: 0,
         node_id: "0",
@@ -43,11 +49,11 @@ const initialState ={
         "created_at": "2010-08-28T22:13:36Z",
         "updated_at": "2020-03-02T10:48:15Z"*/
     },
-    userSecret: {},
-    userToken: {},
+    userSecret: {secret:" "},
+    userToken: {token: " "},
     isLoaded: false,
-    userRepositories: [/*{name:"undefined"}*/],
-    globalRepositoriesList: []
+    userRepositories: [{name:"undefined"}],
+    globalRepositoriesList: [{name:"undefined"}]
   };
   
 //action types  
@@ -58,8 +64,11 @@ const ACTION_CATCHED_REPOSITORIES = 'ACTION_CATCHED_REPOSITORIES';
 const ACTION_CATCHED_USER_TOKEN = 'ACTION_CATCHED_USER_TOKEN';
 const ACTION_CATCHED_GLOBAL_REPOSITORIES = 'ACTION_CATCHED_GLOBAL_REPOSITORIES';
 const ACTION_PRESS_SIGNIN_BUTTON = 'ACTION_PRESS_SIGNIN_BUTTON';
+const ACTION_USER_FETCH_REQUESTED = 'ACTION_USER_FETCH_REQUESTED';
+const ACTION_USER_REPOSITORIES_FETCH_REQUESTED = 'ACTION_USER_REPOSITORIES_FETCH_REQUESTED';
 
 
+  //simple purrified actions
   /*const actionChangeLogin = {
     type: ACTION_CHANGE_LOGIN,
     payload:null
@@ -69,6 +78,26 @@ const ACTION_PRESS_SIGNIN_BUTTON = 'ACTION_PRESS_SIGNIN_BUTTON';
     type: ACTION_CHANGE_PASSWORD,
     payload:null
   }*/
+
+
+//wrapper action
+const userRepositoriesFetchRequested = (userLogin) =>{
+    //console.log(repositories);
+    return{
+        type: ACTION_USER_REPOSITORIES_FETCH_REQUESTED,
+        payload: userLogin
+        };
+    };
+
+
+//wrapper action
+const userFetchRequested = (userLogin) =>{
+    //console.log(repositories);
+    return{
+        type: ACTION_USER_FETCH_REQUESTED,
+        payload: userLogin
+        };
+    };
 
 
 //wrapper action
@@ -157,30 +186,67 @@ const rootReducer = (state = initialState, action) => {
             return {...state, globalRepositoriesList:action.payload};
         case ACTION_PRESS_SIGNIN_BUTTON:
             return {...state};
+        case ACTION_USER_FETCH_REQUESTED:
+            return {...state};
+        case ACTION_USER_REPOSITORIES_FETCH_REQUESTED:
+            return {...state};
     }
     return state
 }
   
+//Saga middle-ware layer
+const sagaMiddleware = createSagaMiddleware();
+
+
   //STORE
-const store = createStore(rootReducer);
+const store = createStore(rootReducer,composeWithDevTools(applyMiddleware(sagaMiddleware)));
+
+sagaMiddleware.run(rootSaga);
   
-//console.log(store.getState());
+
   
+function* fetchUser(action) {
+    const result =yield fetch(`https://api.github.com/users/${action.payload}`)
+                .then(response => response.json());
+    yield put(verrifiedUser(result));
+ }
+
+function* fetchUserRepositories(action) {
+    const result =yield fetch(`https://api.github.com/users/${action.payload}/repos`)
+                .then(response => response.json());
+
+    yield put(loadedRepositories(result));
+}
+
+
+function* userSaga() {
+    yield takeEvery(ACTION_USER_FETCH_REQUESTED, fetchUser);
+  }
+
+  function* userReposSaga() {
+    yield takeEvery(ACTION_USER_REPOSITORIES_FETCH_REQUESTED,fetchUserRepositories)
+  }
+
+
+function* rootSaga() {
+    yield all([
+      userSaga(),
+      userReposSaga()
+    ])
+  }
 
 
 export default class App extends React.Component {
+    
     
 
     constructor(props) {
         super(props);
         this.catchUserProfile = this.catchUserProfile.bind(this);
-        this.loadGlobalRepositories = this.loadGlobalRepositories.bind(this);
-        this.loadedGlobalRepositoriesNoAction = this.loadedGlobalRepositoriesNoAction.bind(this);
         this.state = {
             globalRepositoriesList: null,
             isLoaded: false
         }
-        //this.loadGlobalRepositories();
     }
 
     catchUserToken(e,userLogin,userPassword){
@@ -192,44 +258,16 @@ export default class App extends React.Component {
     }
 
     catchUserProfile(e,userLogin) {
-        const { loadedRepositories} = this.props;
+        const { userRepositoriesFetchRequested,userFetchRequested} = this.props;
         e.preventDefault();
-        fetch(`https://api.github.com/users/${userLogin}`)
-            .then(response => response.json())
-            .then(userProfile => {
-                this.props.verrifiedUser(userProfile);
-                //fetch(`https://api.github.com/users/${userProfile.login}/repos`)
-                }
-            );
-            /*.then(res =>res.json())
-            .then(
-                (result) => {
-                  loadedRepositories(result)
-                }           
-              )*/
-        fetch(`https://api.github.com/users/${userLogin}/repos`)
-            .then(response => response.json())
-            .then((result) => {
-                loadedRepositories(result)
-              })
+        userFetchRequested(userLogin);
+        userRepositoriesFetchRequested(userLogin);
 
     };
 
-    loadGlobalRepositories(){
-        fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
-        .then(response => response.json())
-        .then((result) => {
-            loadedGlobalRepositories(result)
-          })
-    }
 
-    loadedGlobalRepositoriesNoAction(){
-        fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
-        .then(response => response.json())
-    }
 
     componentDidMount(){
-        //this.setState({globalRepositoriesList: this.loadedGlobalRepositoriesNoAction()})
         fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
         .then(response => response.json())
         .then(result => {
@@ -247,47 +285,57 @@ export default class App extends React.Component {
         const {globalRepositoriesList,isLoaded} = this.state;
         const {login,password,changeLogin,changePassword,user,userRepositories/*, globalRepositoriesList*/} = this.props;//destructor
         const globalList = isLoaded ? 
-        <ul>
+        <ul className="topTierList">
             {globalRepositoriesList.items.map(item => (
-                <li key={item.name}>
+                <li className="topTierListElement"  key={item.name}>
                     Repository '{item.name}' created by owner {item.owner.login}
                 </li>
             ))}
         </ul> : "loading..." ;
-        console.log(this.state);
+        //console.log(this.state);
         return (
-            <div className="auth">
-            <h2>Sign In</h2>
-            <form>
-                <div>
-                <input type="text" onChange={(event) => {/*dispatch(changeLogin(event.target.value))*/changeLogin(event.target.value)}} value={login} name="login" placeholder="login"/>
+            <div className="mainComponent">
+                <div className="formLoginContainer">
+                    <h2>Sign In</h2>
+                    <form className="loginForm">
+                        <div className="inputContainer">
+                            <input type="text" onChange={(event) => {/*dispatch(changeLogin(event.target.value))*/changeLogin(event.target.value)}} value={login} name="login" placeholder="login"/>
+                        </div>
+                        <div className="inputContainer">
+                            <input type="password" onChange={(event) => {/*dispatch(changePassword(event.target.value))*/changePassword(event.target.value)}} value={password} name="password" placeholder="Password"/>
+                        </div>
+                        <div className ="buttonContainer">
+                            <div>
+                                <button className="loggIn" onClick={(event) => this.catchUserToken(event,login,password)}>Sign In</button>
+                            </div>
+                            <div>
+                                <button className="getUserInfo" onClick={(event)=>this.catchUserProfile(event,login)}>Get Info</button>
+                            </div>
+                        </div>
+                        <div className="userInfoContainer">
+                            <div className="userNameContainer">
+                                {user.name}
+                            </div>
+                            <div className="userAvatarContainer">
+                                <img src={user.avatar_url}/>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <div>
-                <input type="password" onChange={(event) => {/*dispatch(changePassword(event.target.value))*/changePassword(event.target.value)}} value={password} name="password" placeholder="Password"/>
+                <div className="userRepositoriesContainer">
+                    Repositories that this person owned
+                    <ul className = "userRepositoriesList">
+                        {userRepositories.map(item => (
+                            <li className = "userRepositoriesListElement" key={item.name}>
+                                {item.name}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-                <div>
-                <button onClick={(event) => this.catchUserToken(event,login,password)}>Sign In</button>
-                <button onClick={(event)=>this.catchUserProfile(event,login)}>Get Info</button>
-                </div>
-                <div>
-                    Login: <b>{login}</b> Password: <b>{password}</b>
-                </div>
-                <div>{user.name}</div>
-            </form>
-            <div>
-                Repositories that this person owned
-                <ul>
-                    {userRepositories.map(item => (
-                        <li key={item.name}>
-                            {item.name}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-            <div>
-                Top tier of repositories with highest numbers of stars
+                <div className="topTierRepositoriesContainer">
+                    Top tier of repositories with highest numbers of stars
                     {globalList}
-            </div>
+                </div>
             </div>
             
         );
@@ -323,7 +371,9 @@ const putActionsToProps = (dispatch) => {
         loadedRepositories: bindActionCreators(loadedRepositories, dispatch),
         catchedUserToken: bindActionCreators(catchedUserToken, dispatch),
         loadedGlobalRepositories: bindActionCreators(loadedGlobalRepositories, dispatch),
-        pressedSignInButton: bindActionCreators(pressedSignInButton, dispatch)
+        pressedSignInButton: bindActionCreators(pressedSignInButton, dispatch),
+        userFetchRequested: bindActionCreators(userFetchRequested, dispatch),
+        userRepositoriesFetchRequested: bindActionCreators(userRepositoriesFetchRequested, dispatch)
     };
 };
 
