@@ -65,6 +65,8 @@ const ACTION_CATCHED_USER_TOKEN = 'ACTION_CATCHED_USER_TOKEN';
 const ACTION_CATCHED_GLOBAL_REPOSITORIES = 'ACTION_CATCHED_GLOBAL_REPOSITORIES';
 const ACTION_PRESS_SIGNIN_BUTTON = 'ACTION_PRESS_SIGNIN_BUTTON';
 const ACTION_USER_FETCH_REQUESTED = 'ACTION_USER_FETCH_REQUESTED';
+const ACTION_USER_REPOSITORIES_FETCH_REQUESTED = 'ACTION_USER_REPOSITORIES_FETCH_REQUESTED';
+
 
 
   /*const actionChangeLogin = {
@@ -76,6 +78,17 @@ const ACTION_USER_FETCH_REQUESTED = 'ACTION_USER_FETCH_REQUESTED';
     type: ACTION_CHANGE_PASSWORD,
     payload:null
   }*/
+
+
+//wrapper action
+const userRepositoriesFetchRequested = (userLogin) =>{
+    //console.log(repositories);
+    return{
+        type: ACTION_USER_REPOSITORIES_FETCH_REQUESTED,
+        payload: userLogin
+        };
+    };
+
 
 //wrapper action
 const userFetchRequested = (userLogin) =>{
@@ -178,6 +191,8 @@ const rootReducer = (state = initialState, action) => {
             return {...state};
         case ACTION_USER_FETCH_REQUESTED:
             return {...state};
+        case ACTION_USER_REPOSITORIES_FETCH_REQUESTED:
+            return {...state};
     }
     return state
 }
@@ -189,20 +204,32 @@ const sagaMiddleware = createSagaMiddleware();
   //STORE
 const store = createStore(rootReducer,composeWithDevTools(applyMiddleware(sagaMiddleware)));
 
-sagaMiddleware.run(mySaga);
+sagaMiddleware.run(rootSaga);
   
 
   
 function* fetchUser(action) {
     //alert('fetch user works');
-    const result = fetch(`https://api.github.com/users/${action.payload}`).then(response => response.json());
+    const result = fetch(`https://api.github.com/users/${action.payload}`)
+                .then(response => response.json());
     //console.log(result);
     yield put(verrifiedUser(result));
  }
 
+function* fetchUserRepositories(action) {
+    const result = fetch(`https://api.github.com/users/${action.payload}/repos`)
+                .then(response => response.json());
 
-function* mySaga() {
+    yield put(loadedRepositories(result));
+}
+
+
+function* userSaga() {
     yield takeEvery(ACTION_USER_FETCH_REQUESTED, fetchUser);
+  }
+
+  function* userReposSaga() {
+    yield takeEvery(ACTION_USER_REPOSITORIES_FETCH_REQUESTED,fetchUserRepositories)
   }
 
 /*function* checksaga() {
@@ -210,12 +237,12 @@ function* mySaga() {
     console.log(result);
 }*/
 
-/*function* rootSaga() {
+function* rootSaga() {
     yield all([
-      mySaga(),
-      checksaga()
+      userSaga(),
+      userReposSaga()
     ])
-  }*/
+  }
 
 export default class App extends React.Component {
     
@@ -242,30 +269,10 @@ export default class App extends React.Component {
     }
 
     catchUserProfile(e,userLogin) {
-        const { userFetchRequested,loadedRepositories,verrifiedUser} = this.props;
+        const { userRepositoriesFetchRequested,userFetchRequested,loadedRepositories,verrifiedUser} = this.props;
         e.preventDefault();
         userFetchRequested(userLogin);
-        /*fetch(`https://api.github.com/users/${userLogin}`)
-            .then(response => response.json())
-            .then(userProfile => {
-                verrifiedUser(userProfile);
-
-                //userFetchRequested(userProfile);
-
-                //fetch(`https://api.github.com/users/${userProfile.login}/repos`)
-                }
-            );*/
-            /*.then(res =>res.json())
-            .then(
-                (result) => {
-                  loadedRepositories(result)
-                }           
-              )*/
-        fetch(`https://api.github.com/users/${userLogin}/repos`)
-            .then(response => response.json())
-            .then((result) => {
-                loadedRepositories(result)
-              })
+        userRepositoriesFetchRequested(userLogin);
 
     };
 
@@ -379,7 +386,8 @@ const putActionsToProps = (dispatch) => {
         catchedUserToken: bindActionCreators(catchedUserToken, dispatch),
         loadedGlobalRepositories: bindActionCreators(loadedGlobalRepositories, dispatch),
         pressedSignInButton: bindActionCreators(pressedSignInButton, dispatch),
-        userFetchRequested: bindActionCreators(userFetchRequested, dispatch)
+        userFetchRequested: bindActionCreators(userFetchRequested, dispatch),
+        userRepositoriesFetchRequested: bindActionCreators(userRepositoriesFetchRequested, dispatch)
     };
 };
 
