@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+import './styles.css';
 import * as serviceWorker from './serviceWorker';
 import {Provider,connect} from 'react-redux';
 import {createStore,bindActionCreators,applyMiddleware} from 'redux';
@@ -296,7 +297,9 @@ export default class App extends React.Component {
         return (
             <div className="mainComponent">
                 <div className="formLoginContainer">
-                    <h2>Sign In</h2>
+                    <div className="h2">
+                        <h2>Sign In</h2>
+                    </div>
                     <form className="loginForm">
                         <div className="inputContainer">
                             <input type="text" onChange={(event) => {/*dispatch(changeLogin(event.target.value))*/changeLogin(event.target.value)}} value={login} name="login" placeholder="login"/>
