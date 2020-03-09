@@ -182,7 +182,10 @@ const rootReducer = (state = initialState, action) => {
                 return {...state, user: action.payload};
             }
         case ACTION_CATCHED_REPOSITORIES:
-            return {...state, userRepositories:action.payload};
+            {
+                console.log(action.payload);
+                return {...state, userRepositories:action.payload};
+            }
         case ACTION_CATCHED_USER_TOKEN:
             return {...state, userToken:action.payload};
         case ACTION_CATCHED_GLOBAL_REPOSITORIES:
@@ -210,14 +213,14 @@ sagaMiddleware.run(rootSaga);
   
 function* fetchUser(action) {
     //alert('fetch user works');
-    const result = fetch(`https://api.github.com/users/${action.payload}`)
+    const result =yield fetch(`https://api.github.com/users/${action.payload}`)
                 .then(response => response.json());
     //console.log(result);
     yield put(verrifiedUser(result));
  }
 
 function* fetchUserRepositories(action) {
-    const result = fetch(`https://api.github.com/users/${action.payload}/repos`)
+    const result =yield fetch(`https://api.github.com/users/${action.payload}/repos`)
                 .then(response => response.json());
 
     yield put(loadedRepositories(result));
