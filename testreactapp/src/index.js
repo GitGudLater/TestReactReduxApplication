@@ -3,14 +3,20 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 import {Provider,connect} from 'react-redux';
-import {createStore,bindActionCreators} from 'redux';
+import {createStore,bindActionCreators,applyMiddleware} from 'redux';
+import createSagaMiddleware from 'redux-saga';
+import { all ,call, put, takeEvery, takeLatest } from 'redux-saga/effects'
+import { composeWithDevTools } from 'redux-devtools-extension';
+
+
 
 //initial component states for reduser
 const initialState ={
     login: '',
     password: '',
     user: {
-        name: " "
+        name: "",
+        avatar_url: ""
         /*login: " ",
         id: 0,
         node_id: "0",
@@ -43,11 +49,11 @@ const initialState ={
         "created_at": "2010-08-28T22:13:36Z",
         "updated_at": "2020-03-02T10:48:15Z"*/
     },
-    userSecret: {},
-    userToken: {},
+    userSecret: {secret:" "},
+    userToken: {token: " "},
     isLoaded: false,
-    userRepositories: [/*{name:"undefined"}*/],
-    globalRepositoriesList: []
+    userRepositories: [{name:"undefined"}],
+    globalRepositoriesList: [{name:"undefined"}]
   };
   
 //action types  
@@ -58,6 +64,7 @@ const ACTION_CATCHED_REPOSITORIES = 'ACTION_CATCHED_REPOSITORIES';
 const ACTION_CATCHED_USER_TOKEN = 'ACTION_CATCHED_USER_TOKEN';
 const ACTION_CATCHED_GLOBAL_REPOSITORIES = 'ACTION_CATCHED_GLOBAL_REPOSITORIES';
 const ACTION_PRESS_SIGNIN_BUTTON = 'ACTION_PRESS_SIGNIN_BUTTON';
+const ACTION_USER_FETCH_REQUESTED = 'ACTION_USER_FETCH_REQUESTED';
 
 
   /*const actionChangeLogin = {
@@ -69,6 +76,15 @@ const ACTION_PRESS_SIGNIN_BUTTON = 'ACTION_PRESS_SIGNIN_BUTTON';
     type: ACTION_CHANGE_PASSWORD,
     payload:null
   }*/
+
+//wrapper action
+const userFetchRequested = (userLogin) =>{
+    //console.log(repositories);
+    return{
+        type: ACTION_USER_FETCH_REQUESTED,
+        payload: userLogin
+        };
+    };
 
 
 //wrapper action
@@ -148,7 +164,10 @@ const rootReducer = (state = initialState, action) => {
         case ACTION_CHANGE_PASSWORD:
             return {...state, password: action.payload};//saves previous states with new values
         case ACTION_CATCHED_USER_PROFILE:
-            return {...state, user: action.payload};
+            {
+                console.log(action.payload);
+                return {...state, user: action.payload};
+            }
         case ACTION_CATCHED_REPOSITORIES:
             return {...state, userRepositories:action.payload};
         case ACTION_CATCHED_USER_TOKEN:
@@ -157,18 +176,49 @@ const rootReducer = (state = initialState, action) => {
             return {...state, globalRepositoriesList:action.payload};
         case ACTION_PRESS_SIGNIN_BUTTON:
             return {...state};
+        case ACTION_USER_FETCH_REQUESTED:
+            return {...state};
     }
     return state
 }
   
+//Saga middle-ware layer
+const sagaMiddleware = createSagaMiddleware();
+
+
   //STORE
-const store = createStore(rootReducer);
-  
-//console.log(store.getState());
+const store = createStore(rootReducer,composeWithDevTools(applyMiddleware(sagaMiddleware)));
+
+sagaMiddleware.run(mySaga);
   
 
+  
+function* fetchUser(action) {
+    //alert('fetch user works');
+    const result = fetch(`https://api.github.com/users/${action.payload}`).then(response => response.json());
+    //console.log(result);
+    yield put(verrifiedUser(result));
+ }
+
+
+function* mySaga() {
+    yield takeEvery(ACTION_USER_FETCH_REQUESTED, fetchUser);
+  }
+
+/*function* checksaga() {
+    const result =  fetch(`https://api.github.com/users/GitGudLater`).then(response => response.json());
+    console.log(result);
+}*/
+
+/*function* rootSaga() {
+    yield all([
+      mySaga(),
+      checksaga()
+    ])
+  }*/
 
 export default class App extends React.Component {
+    
     
 
     constructor(props) {
@@ -192,15 +242,19 @@ export default class App extends React.Component {
     }
 
     catchUserProfile(e,userLogin) {
-        const { loadedRepositories} = this.props;
+        const { userFetchRequested,loadedRepositories,verrifiedUser} = this.props;
         e.preventDefault();
-        fetch(`https://api.github.com/users/${userLogin}`)
+        userFetchRequested(userLogin);
+        /*fetch(`https://api.github.com/users/${userLogin}`)
             .then(response => response.json())
             .then(userProfile => {
-                this.props.verrifiedUser(userProfile);
+                verrifiedUser(userProfile);
+
+                //userFetchRequested(userProfile);
+
                 //fetch(`https://api.github.com/users/${userProfile.login}/repos`)
                 }
-            );
+            );*/
             /*.then(res =>res.json())
             .then(
                 (result) => {
@@ -254,7 +308,7 @@ export default class App extends React.Component {
                 </li>
             ))}
         </ul> : "loading..." ;
-        console.log(this.state);
+        //console.log(this.state);
         return (
             <div className="auth">
             <h2>Sign In</h2>
@@ -273,6 +327,7 @@ export default class App extends React.Component {
                     Login: <b>{login}</b> Password: <b>{password}</b>
                 </div>
                 <div>{user.name}</div>
+                <div><img src={user.avatar_url}/></div>
             </form>
             <div>
                 Repositories that this person owned
@@ -323,7 +378,8 @@ const putActionsToProps = (dispatch) => {
         loadedRepositories: bindActionCreators(loadedRepositories, dispatch),
         catchedUserToken: bindActionCreators(catchedUserToken, dispatch),
         loadedGlobalRepositories: bindActionCreators(loadedGlobalRepositories, dispatch),
-        pressedSignInButton: bindActionCreators(pressedSignInButton, dispatch)
+        pressedSignInButton: bindActionCreators(pressedSignInButton, dispatch),
+        userFetchRequested: bindActionCreators(userFetchRequested, dispatch)
     };
 };
 
