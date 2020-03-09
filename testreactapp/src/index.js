@@ -68,7 +68,7 @@ const ACTION_USER_FETCH_REQUESTED = 'ACTION_USER_FETCH_REQUESTED';
 const ACTION_USER_REPOSITORIES_FETCH_REQUESTED = 'ACTION_USER_REPOSITORIES_FETCH_REQUESTED';
 
 
-
+  //simple purrified actions
   /*const actionChangeLogin = {
     type: ACTION_CHANGE_LOGIN,
     payload:null
@@ -235,6 +235,7 @@ function* rootSaga() {
     ])
   }
 
+
 export default class App extends React.Component {
     
     
@@ -242,8 +243,6 @@ export default class App extends React.Component {
     constructor(props) {
         super(props);
         this.catchUserProfile = this.catchUserProfile.bind(this);
-        this.loadGlobalRepositories = this.loadGlobalRepositories.bind(this);
-        this.loadedGlobalRepositoriesNoAction = this.loadedGlobalRepositoriesNoAction.bind(this);
         this.state = {
             globalRepositoriesList: null,
             isLoaded: false
@@ -259,25 +258,14 @@ export default class App extends React.Component {
     }
 
     catchUserProfile(e,userLogin) {
-        const { userRepositoriesFetchRequested,userFetchRequested,loadedRepositories,verrifiedUser} = this.props;
+        const { userRepositoriesFetchRequested,userFetchRequested} = this.props;
         e.preventDefault();
         userFetchRequested(userLogin);
         userRepositoriesFetchRequested(userLogin);
 
     };
 
-    loadGlobalRepositories(){
-        fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
-        .then(response => response.json())
-        .then((result) => {
-            loadedGlobalRepositories(result)
-          })
-    }
 
-    loadedGlobalRepositoriesNoAction(){
-        fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
-        .then(response => response.json())
-    }
 
     componentDidMount(){
         fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
@@ -297,48 +285,57 @@ export default class App extends React.Component {
         const {globalRepositoriesList,isLoaded} = this.state;
         const {login,password,changeLogin,changePassword,user,userRepositories/*, globalRepositoriesList*/} = this.props;//destructor
         const globalList = isLoaded ? 
-        <ul>
+        <ul className="topTierList">
             {globalRepositoriesList.items.map(item => (
-                <li key={item.name}>
+                <li className="topTierListElement"  key={item.name}>
                     Repository '{item.name}' created by owner {item.owner.login}
                 </li>
             ))}
         </ul> : "loading..." ;
         //console.log(this.state);
         return (
-            <div className="auth">
-            <h2>Sign In</h2>
-            <form>
-                <div>
-                <input type="text" onChange={(event) => {/*dispatch(changeLogin(event.target.value))*/changeLogin(event.target.value)}} value={login} name="login" placeholder="login"/>
+            <div className="mainComponent">
+                <div className="formLoginContainer">
+                    <h2>Sign In</h2>
+                    <form className="loginForm">
+                        <div className="inputContainer">
+                            <input type="text" onChange={(event) => {/*dispatch(changeLogin(event.target.value))*/changeLogin(event.target.value)}} value={login} name="login" placeholder="login"/>
+                        </div>
+                        <div className="inputContainer">
+                            <input type="password" onChange={(event) => {/*dispatch(changePassword(event.target.value))*/changePassword(event.target.value)}} value={password} name="password" placeholder="Password"/>
+                        </div>
+                        <div className ="buttonContainer">
+                            <div>
+                                <button className="loggIn" onClick={(event) => this.catchUserToken(event,login,password)}>Sign In</button>
+                            </div>
+                            <div>
+                                <button className="getUserInfo" onClick={(event)=>this.catchUserProfile(event,login)}>Get Info</button>
+                            </div>
+                        </div>
+                        <div className="userInfoContainer">
+                            <div className="userNameContainer">
+                                {user.name}
+                            </div>
+                            <div className="userAvatarContainer">
+                                <img src={user.avatar_url}/>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <div>
-                <input type="password" onChange={(event) => {/*dispatch(changePassword(event.target.value))*/changePassword(event.target.value)}} value={password} name="password" placeholder="Password"/>
+                <div className="userRepositoriesContainer">
+                    Repositories that this person owned
+                    <ul className = "userRepositoriesList">
+                        {userRepositories.map(item => (
+                            <li className = "userRepositoriesListElement" key={item.name}>
+                                {item.name}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-                <div>
-                <button onClick={(event) => this.catchUserToken(event,login,password)}>Sign In</button>
-                <button onClick={(event)=>this.catchUserProfile(event,login)}>Get Info</button>
-                </div>
-                <div>
-                    Login: <b>{login}</b> Password: <b>{password}</b>
-                </div>
-                <div>{user.name}</div>
-                <div><img src={user.avatar_url}/></div>
-            </form>
-            <div>
-                Repositories that this person owned
-                <ul>
-                    {userRepositories.map(item => (
-                        <li key={item.name}>
-                            {item.name}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-            <div>
-                Top tier of repositories with highest numbers of stars
+                <div className="topTierRepositoriesContainer">
+                    Top tier of repositories with highest numbers of stars
                     {globalList}
-            </div>
+                </div>
             </div>
             
         );
