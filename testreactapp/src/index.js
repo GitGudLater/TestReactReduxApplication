@@ -11,6 +11,7 @@ import { all ,call, put, takeEvery, takeLatest } from 'redux-saga/effects'
 import { composeWithDevTools } from 'redux-devtools-extension';
 
 
+const REDIRECT_URI = "http://localhost:3000";
 
 //initial component states for reduser
 const initialState ={
@@ -51,8 +52,9 @@ const initialState ={
         "created_at": "2010-08-28T22:13:36Z",
         "updated_at": "2020-03-02T10:48:15Z"*/
     },
-    userSecret: {secret:" "},
-    userToken: {token: " "},
+    clientId: "f881151bded22e6488b8",
+    clientSecret: "2a276748cf9e94e43cc3cc0f3c61281f73549dc8",
+    userToken: {},
     isLoaded: false,
     userRepositories: [{name:"undefined"}],
     globalRepositoriesList: [{name:"undefined"}]
@@ -244,7 +246,9 @@ export default class App extends React.Component {
         this.catchUserProfile = this.catchUserProfile.bind(this);
         this.state = {
             globalRepositoriesList: null,
-            isLoaded: false
+            isLoaded: false,
+            oAuthStatus: 'Not Loaded',
+            token: null
         }
     }
 
@@ -252,6 +256,7 @@ export default class App extends React.Component {
         const {pressedSignInButton} = this.props;
         e.preventDefault();
         //fetch();
+        
         pressedSignInButton();
         alert(`user token request for user ${userLogin} with password ${userPassword} will be added soon with fetch function`);
     }
@@ -264,7 +269,9 @@ export default class App extends React.Component {
 
     };
 
-
+    componentDidUpdate(){
+        console.log(this.state.token);
+    }
 
     componentDidMount(){
 
@@ -278,7 +285,23 @@ export default class App extends React.Component {
                     }
                 )
             }
-        )
+        );
+        
+        const code = window.location.href.match(/\?code=(.*)/)[1]/*window.location.href.substring(28)*/;
+        //console.log(code);
+
+        if(code){
+            this.setState({ oAuthStatus:"In progress" });
+            axios.get(`https://simple-o-auth.herokuapp.com/authenticate/${code}`/*`https://git.heroku.com/simple-o-auth.git/authenticate/${code}`*/)
+                .then(userToken => this.setState(
+                    {
+                        token:userToken.data,
+                        oAuthStatus: 'Loaded',
+                    }
+                )
+            )
+        }
+        //console.log(this.state.token);
     }
 
 
@@ -286,7 +309,7 @@ export default class App extends React.Component {
         //console.log(this.props)
         //const dispatch = this.props.dispatch;
         const {globalRepositoriesList,isLoaded} = this.state;
-        const {login,password,changeLogin,changePassword,user,userRepositories/*, globalRepositoriesList*/} = this.props;//destructor
+        const {login,password,changeLogin,changePassword,user,userRepositories,clientId/*, globalRepositoriesList*/} = this.props;//destructor
         const globalList = isLoaded ? 
         <ul className="topTierList">
             {globalRepositoriesList.items.map(item => (
@@ -312,7 +335,7 @@ export default class App extends React.Component {
                             </div>
                             <div className ="buttonContainer">
                                 <div>
-                                    <button className="loggIn" onClick={(event) => this.catchUserToken(event,login,password)}>Sign In</button>
+                                    <a href={`https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&redirect_uri=${REDIRECT_URI}`} onClick={pressedSignInButton()}>Logg In</a>
                                 </div>
                                 <div>
                                     <button className="getUserInfo" onClick={(event)=>this.catchUserProfile(event,login)}>Get Info</button>
@@ -357,6 +380,7 @@ export default class App extends React.Component {
 const putStateToProps = (state) =>{
     //console.log(state);
     return{
+        clientId:state.clientId,
         login: state.login,
         password: state.password,
         user: state.user,
