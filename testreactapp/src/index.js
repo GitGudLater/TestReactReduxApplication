@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import axios from 'axios';
 import './index.css';
 import './styles.css';
 import * as serviceWorker from './serviceWorker';
@@ -207,15 +208,12 @@ sagaMiddleware.run(rootSaga);
 
   
 function* fetchUser(action) {
-    const result =yield fetch(`https://api.github.com/users/${action.payload}`)
-                .then(response => response.json());
+    const result =yield axios.get(`https://api.github.com/users/${action.payload}`).then(response => response.data);
     yield put(verrifiedUser(result));
  }
 
 function* fetchUserRepositories(action) {
-    const result =yield fetch(`https://api.github.com/users/${action.payload}/repos`)
-                .then(response => response.json());
-
+    const result =yield axios.get(`https://api.github.com/users/${action.payload}/repos`).then(response => response.data);
     yield put(loadedRepositories(result));
 }
 
@@ -269,14 +267,18 @@ export default class App extends React.Component {
 
 
     componentDidMount(){
-        fetch(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
-        .then(response => response.json())
-        .then(result => {
-            this.setState({
-                globalRepositoriesList: result,
-                isLoaded:true
-            })
-        })
+
+        axios.get(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc`)
+        .then(
+            result => {
+                this.setState(
+                    {
+                        globalRepositoriesList: result.data,
+                        isLoaded:true
+                    }
+                )
+            }
+        )
     }
 
 
