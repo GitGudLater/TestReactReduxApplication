@@ -295,51 +295,54 @@ export default class App extends React.Component {
         </ul> : "loading..." ;
         //console.log(this.state);
         return (
-            <div className="mainComponent">
-                <div className="formLoginContainer">
-                    <div className="h2">
-                        <h2>Sign In</h2>
+            <div className="root">
+                <div className="mainComponent">
+                    <div className="formLoginContainer">
+                        <div className="h2">
+                            <h2>Sign In</h2>
+                        </div>
+                        <form className="loginForm">
+                            <div className="inputContainer">
+                                <input type="text" onChange={(event) => {/*dispatch(changeLogin(event.target.value))*/changeLogin(event.target.value)}} value={login} name="login" placeholder="login"/>
+                            </div>
+                            <div className="inputContainer">
+                                <input type="password" onChange={(event) => {/*dispatch(changePassword(event.target.value))*/changePassword(event.target.value)}} value={password} name="password" placeholder="Password"/>
+                            </div>
+                            <div className ="buttonContainer">
+                                <div>
+                                    <button className="loggIn" onClick={(event) => this.catchUserToken(event,login,password)}>Sign In</button>
+                                </div>
+                                <div>
+                                    <button className="getUserInfo" onClick={(event)=>this.catchUserProfile(event,login)}>Get Info</button>
+                                </div>
+                            </div>
+                            <div className="userInfoContainer">
+                                <div className="userNameContainer">
+                                    {user.name}
+                                </div>
+                                <div className="userAvatarContainer">
+                                    <img src={user.avatar_url}/>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    <form className="loginForm">
-                        <div className="inputContainer">
-                            <input type="text" onChange={(event) => {/*dispatch(changeLogin(event.target.value))*/changeLogin(event.target.value)}} value={login} name="login" placeholder="login"/>
-                        </div>
-                        <div className="inputContainer">
-                            <input type="password" onChange={(event) => {/*dispatch(changePassword(event.target.value))*/changePassword(event.target.value)}} value={password} name="password" placeholder="Password"/>
-                        </div>
-                        <div className ="buttonContainer">
-                            <div>
-                                <button className="loggIn" onClick={(event) => this.catchUserToken(event,login,password)}>Sign In</button>
-                            </div>
-                            <div>
-                                <button className="getUserInfo" onClick={(event)=>this.catchUserProfile(event,login)}>Get Info</button>
-                            </div>
-                        </div>
-                        <div className="userInfoContainer">
-                            <div className="userNameContainer">
-                                {user.name}
-                            </div>
-                            <div className="userAvatarContainer">
-                                <img src={user.avatar_url}/>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div className="userRepositoriesContainer">
-                    Repositories that this person owned
-                    <ul className = "userRepositoriesList">
-                        {userRepositories.map(item => (
-                            <li className = "userRepositoriesListElement" key={item.name}>
-                                {item.name}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-                <div className="topTierRepositoriesContainer">
-                    Top tier of repositories with highest numbers of stars
-                    {globalList}
+                    <div className="userRepositoriesContainer">
+                        Repositories that this person owned
+                        <ul className = "userRepositoriesList">
+                            {userRepositories.map(item => (
+                                <li className = "userRepositoriesListElement" key={item.name}>
+                                    {item.name}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="topTierRepositoriesContainer">
+                        Top tier of repositories with highest numbers of stars
+                        {globalList}
+                    </div>
                 </div>
             </div>
+            
             
         );
 
