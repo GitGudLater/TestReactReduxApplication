@@ -14,6 +14,7 @@ import UserInfo from './components/UserInfo';
 import ReposDashboard from './components/ReposDashboard';
 import { rootReducer } from './store/reducers';
 import { ACTION_CATCHED_USER_PROFILE, ACTION_CATCHED_REPOSITORIES, ACTION_CATCHED_GLOBAL_REPOSITORIES, ACTION_PRESS_SIGNIN_BUTTON, ACTION_USER_FETCH_REQUESTED, ACTION_USER_REPOSITORIES_FETCH_REQUESTED,verrifiedUser, loadedRepositories,loadedGlobalRepositories,pressedSignInButton,userFetchRequested,userRepositoriesFetchRequested } from "./store/actions";
+import {rootSaga} from './store/saga';
 
 const REDIRECT_URI = "http://localhost:3000";
 
@@ -26,37 +27,7 @@ const sagaMiddleware = createSagaMiddleware();
 const store = createStore(rootReducer,composeWithDevTools(applyMiddleware(sagaMiddleware)));
 
 //initial saga
-sagaMiddleware.run(rootSaga);
-  
-
-  
-function* fetchUser(action) {
-    const result =yield axios({  method: 'get',url: 'https://api.github.com/user',headers:{'Authorization': `token ${action.payload.token}`}}/*`https://api.github.com/users/${action.payload}`*/).then(response => response.data);
-    yield put(verrifiedUser(result));
- }
-
-function* fetchUserRepositories(action) {
-    const result =yield axios({  method: 'get',url: 'https://api.github.com/user/repos',headers:{'Authorization': `token ${action.payload.token}`}}).then(response => response.data);
-    yield put(loadedRepositories(result));
-}
-
-
-function* userSaga() {
-    yield takeEvery(ACTION_USER_FETCH_REQUESTED, fetchUser);
-  }
-
-  function* userReposSaga() {
-    yield takeEvery(ACTION_USER_REPOSITORIES_FETCH_REQUESTED,fetchUserRepositories)
-  }
-
-
-function* rootSaga() {
-    yield all([
-      userSaga(),
-      userReposSaga()
-    ])
-  }
-
+sagaMiddleware.run(rootSaga); 
 
 export default class App extends React.Component {
 
@@ -177,12 +148,8 @@ export default class App extends React.Component {
                     </div>
                 </div>
             </div>
-            
-            
         );
-
     }
-  
   }
   
 //Wrapper  
