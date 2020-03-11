@@ -9,113 +9,23 @@ import {createStore,bindActionCreators,applyMiddleware} from 'redux';
 import createSagaMiddleware from 'redux-saga';
 import { all ,call, put, takeEvery, takeLatest } from 'redux-saga/effects'
 import { composeWithDevTools } from 'redux-devtools-extension';
-
+import Auth from './components/Auth';
+import UserInfo from './components/UserInfo';
+import ReposDashboard from './components/ReposDashboard';
+import { rootReducer } from './store/reducers';
+import { ACTION_CATCHED_USER_PROFILE, ACTION_CATCHED_REPOSITORIES, ACTION_CATCHED_GLOBAL_REPOSITORIES, ACTION_PRESS_SIGNIN_BUTTON, ACTION_USER_FETCH_REQUESTED, ACTION_USER_REPOSITORIES_FETCH_REQUESTED,verrifiedUser, loadedRepositories,loadedGlobalRepositories,pressedSignInButton,userFetchRequested,userRepositoriesFetchRequested } from "./store/actions";
 
 const REDIRECT_URI = "http://localhost:3000";
 
-//initial component states for reduser
-const initialState ={
-    user: {
-        name: "",
-        avatar_url: ""
-    },
-    clientId: "f881151bded22e6488b8",
-    clientSecret: "2a276748cf9e94e43cc3cc0f3c61281f73549dc8",
-    userRepositories: [{name:"undefined"}],
-  };
-  
-//action types  
-const ACTION_CATCHED_USER_PROFILE = 'ACTION_CATCHED_USER_PROFILE';
-const ACTION_CATCHED_REPOSITORIES = 'ACTION_CATCHED_REPOSITORIES';
-const ACTION_CATCHED_GLOBAL_REPOSITORIES = 'ACTION_CATCHED_GLOBAL_REPOSITORIES';
-const ACTION_PRESS_SIGNIN_BUTTON = 'ACTION_PRESS_SIGNIN_BUTTON';
-const ACTION_USER_FETCH_REQUESTED = 'ACTION_USER_FETCH_REQUESTED';
-const ACTION_USER_REPOSITORIES_FETCH_REQUESTED = 'ACTION_USER_REPOSITORIES_FETCH_REQUESTED';
 
 
-//wrapper action
-const userRepositoriesFetchRequested = (token) =>{
-    return{
-        type: ACTION_USER_REPOSITORIES_FETCH_REQUESTED,
-        payload: token
-        };
-    };
-
-
-//wrapper action
-const userFetchRequested = (token) =>{
-    return{
-        type: ACTION_USER_FETCH_REQUESTED,
-        payload: token
-        };
-    };
-
-
-//wrapper action
-const pressedSignInButton = () =>{
-    return{
-        type: ACTION_PRESS_SIGNIN_BUTTON,
-        payload: null
-        };
-    };
-
-
-//wrapper action
-const loadedGlobalRepositories = (repositories) =>{
-    return{
-        type: ACTION_CATCHED_GLOBAL_REPOSITORIES,
-        payload: repositories
-        };
-    };
-
-
-
-
-  
-
-//wrapped action    
-const verrifiedUser = (user) =>{
-    return{
-        type: ACTION_CATCHED_USER_PROFILE,
-        payload: user
-        };
-    };
-
-//wrapped action    
-const loadedRepositories = (repositories) =>{
-    return{
-        type: ACTION_CATCHED_REPOSITORIES,
-        payload: repositories
-        };
-    };
-    
-//reducer that get store in argument and return store as result
-//??He can be called every moment after component rendered(ComponentDidMount()/DidUpdate()) and search wich action is happend
-//??after this he change components state in such cases:D 
-const rootReducer = (state = initialState, action) => {
-    switch (action.type){
-        case ACTION_CATCHED_USER_PROFILE:
-            return {...state, user: action.payload};
-        case ACTION_CATCHED_REPOSITORIES:
-            return {...state, userRepositories:action.payload};
-        case ACTION_CATCHED_GLOBAL_REPOSITORIES:
-            return {...state, globalRepositoriesList:action.payload};
-        case ACTION_PRESS_SIGNIN_BUTTON:
-            return {...state};
-        case ACTION_USER_FETCH_REQUESTED:
-            return {...state};
-        case ACTION_USER_REPOSITORIES_FETCH_REQUESTED:
-            return {...state};
-    }
-    return state
-}
-  
 //Saga middle-ware layer
 const sagaMiddleware = createSagaMiddleware();
 
 //STORE
 const store = createStore(rootReducer,composeWithDevTools(applyMiddleware(sagaMiddleware)));
 
+//initial saga
 sagaMiddleware.run(rootSaga);
   
 
@@ -149,8 +59,6 @@ function* rootSaga() {
 
 
 export default class App extends React.Component {
-    
-    
 
     constructor(props) {
         super(props);
