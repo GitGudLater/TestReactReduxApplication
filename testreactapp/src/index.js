@@ -15,98 +15,44 @@ const REDIRECT_URI = "http://localhost:3000";
 
 //initial component states for reduser
 const initialState ={
-    login: '',
-    password: '',
     user: {
         name: "",
         avatar_url: ""
-        /*login: " ",
-        id: 0,
-        node_id: "0",
-        avatar_url: "0",
-        "gravatar_id": "",
-        "url": "0",
-        "html_url": "0",
-        "followers_url": "0",
-        "following_url": "0",
-        "gists_url": "0",
-        "starred_url": "0",
-        "subscriptions_url": "0",
-        "organizations_url": "0",
-        "repos_url": "0",
-        "events_url": "0",
-        "received_events_url": "0",
-        "type": "0",
-        "site_admin": false,
-        "name": "0",
-        "company": null,
-        "blog": "0",
-        "location": "0",
-        "email": null,
-        "hireable": null,
-        "bio": null,
-        "public_repos": 67,
-        "public_gists": 27,
-        "followers": 54,
-        "following": 30,
-        "created_at": "2010-08-28T22:13:36Z",
-        "updated_at": "2020-03-02T10:48:15Z"*/
     },
     clientId: "f881151bded22e6488b8",
     clientSecret: "2a276748cf9e94e43cc3cc0f3c61281f73549dc8",
-    userToken: {},
-    isLoaded: false,
     userRepositories: [{name:"undefined"}],
-    globalRepositoriesList: [{name:"undefined"}]
   };
   
 //action types  
-const ACTION_CHANGE_LOGIN ='ACTION_CHANGE_LOGIN';
-const ACTION_CHANGE_PASSWORD = 'ACTION_CHANGE_PASSWORD';
 const ACTION_CATCHED_USER_PROFILE = 'ACTION_CATCHED_USER_PROFILE';
 const ACTION_CATCHED_REPOSITORIES = 'ACTION_CATCHED_REPOSITORIES';
-const ACTION_CATCHED_USER_TOKEN = 'ACTION_CATCHED_USER_TOKEN';
 const ACTION_CATCHED_GLOBAL_REPOSITORIES = 'ACTION_CATCHED_GLOBAL_REPOSITORIES';
 const ACTION_PRESS_SIGNIN_BUTTON = 'ACTION_PRESS_SIGNIN_BUTTON';
 const ACTION_USER_FETCH_REQUESTED = 'ACTION_USER_FETCH_REQUESTED';
 const ACTION_USER_REPOSITORIES_FETCH_REQUESTED = 'ACTION_USER_REPOSITORIES_FETCH_REQUESTED';
 
 
-  //simple purrified actions
-  /*const actionChangeLogin = {
-    type: ACTION_CHANGE_LOGIN,
-    payload:null
-  }*/
-  
-  /*const actionChangePassword = {
-    type: ACTION_CHANGE_PASSWORD,
-    payload:null
-  }*/
-
-
 //wrapper action
-const userRepositoriesFetchRequested = (userLogin) =>{
-    //console.log(repositories);
+const userRepositoriesFetchRequested = (token) =>{
     return{
         type: ACTION_USER_REPOSITORIES_FETCH_REQUESTED,
-        payload: userLogin
+        payload: token
         };
     };
 
 
 //wrapper action
-const userFetchRequested = (userLogin) =>{
-    //console.log(repositories);
+const userFetchRequested = (token) =>{
     return{
         type: ACTION_USER_FETCH_REQUESTED,
-        payload: userLogin
+        payload: token
         };
     };
 
 
 //wrapper action
 const pressedSignInButton = () =>{
-    //console.log(repositories);
     return{
         type: ACTION_PRESS_SIGNIN_BUTTON,
         payload: null
@@ -116,55 +62,27 @@ const pressedSignInButton = () =>{
 
 //wrapper action
 const loadedGlobalRepositories = (repositories) =>{
-    //console.log(repositories);
     return{
         type: ACTION_CATCHED_GLOBAL_REPOSITORIES,
         payload: repositories
         };
     };
 
-//wrapped action  
-const catchedUserToken = (token) =>{
-    //console.log(token);
-    return{
-        type: ACTION_CATCHED_USER_TOKEN,
-        payload:token
-        };
-    };
 
 
-//wrapped action  
-const changeLogin = (newLogin) =>{
-    //console.log(newLogin);
-    return{
-        type: ACTION_CHANGE_LOGIN,
-        payload:newLogin
-        };
-    };
 
-
-//wrapped action    
-const changePassword = (newPassword) =>{
-    //console.log(newPassword);
-    return{
-        type: ACTION_CHANGE_PASSWORD,
-        payload:newPassword
-        };
-    };
   
 
 //wrapped action    
 const verrifiedUser = (user) =>{
-    //console.log(user);
     return{
         type: ACTION_CATCHED_USER_PROFILE,
         payload: user
         };
     };
 
-
+//wrapped action    
 const loadedRepositories = (repositories) =>{
-    //console.log(repositories);
     return{
         type: ACTION_CATCHED_REPOSITORIES,
         payload: repositories
@@ -176,16 +94,10 @@ const loadedRepositories = (repositories) =>{
 //??after this he change components state in such cases:D 
 const rootReducer = (state = initialState, action) => {
     switch (action.type){
-        case ACTION_CHANGE_LOGIN:
-            return {...state, login: action.payload};//saves previous states with new values
-        case ACTION_CHANGE_PASSWORD:
-            return {...state, password: action.payload};//saves previous states with new values
         case ACTION_CATCHED_USER_PROFILE:
             return {...state, user: action.payload};
         case ACTION_CATCHED_REPOSITORIES:
             return {...state, userRepositories:action.payload};
-        case ACTION_CATCHED_USER_TOKEN:
-            return {...state, userToken:action.payload};
         case ACTION_CATCHED_GLOBAL_REPOSITORIES:
             return {...state, globalRepositoriesList:action.payload};
         case ACTION_PRESS_SIGNIN_BUTTON:
@@ -201,8 +113,7 @@ const rootReducer = (state = initialState, action) => {
 //Saga middle-ware layer
 const sagaMiddleware = createSagaMiddleware();
 
-
-  //STORE
+//STORE
 const store = createStore(rootReducer,composeWithDevTools(applyMiddleware(sagaMiddleware)));
 
 sagaMiddleware.run(rootSaga);
@@ -210,12 +121,12 @@ sagaMiddleware.run(rootSaga);
 
   
 function* fetchUser(action) {
-    const result =yield axios.get(`https://api.github.com/users/${action.payload}`).then(response => response.data);
+    const result =yield axios({  method: 'get',url: 'https://api.github.com/user',headers:{'Authorization': `token ${action.payload.token}`}}/*`https://api.github.com/users/${action.payload}`*/).then(response => response.data);
     yield put(verrifiedUser(result));
  }
 
 function* fetchUserRepositories(action) {
-    const result =yield axios.get(`https://api.github.com/users/${action.payload}/repos`).then(response => response.data);
+    const result =yield axios({  method: 'get',url: 'https://api.github.com/user/repos',headers:{'Authorization': `token ${action.payload.token}`}}).then(response => response.data);
     yield put(loadedRepositories(result));
 }
 
@@ -244,6 +155,7 @@ export default class App extends React.Component {
     constructor(props) {
         super(props);
         this.catchUserProfile = this.catchUserProfile.bind(this);
+        this.deleteOAuth = this.deleteOAuth.bind(this);
         this.state = {
             globalRepositoriesList: null,
             isLoaded: false,
@@ -252,22 +164,19 @@ export default class App extends React.Component {
         }
     }
 
-    catchUserToken(e,userLogin,userPassword){
-        const {pressedSignInButton} = this.props;
-        e.preventDefault();
-        //fetch();
-        
-        pressedSignInButton();
-        alert(`user token request for user ${userLogin} with password ${userPassword} will be added soon with fetch function`);
-    }
 
-    catchUserProfile(e,userLogin) {
+    catchUserProfile(e,token) {
         const { userRepositoriesFetchRequested,userFetchRequested} = this.props;
         e.preventDefault();
-        userFetchRequested(userLogin);
-        userRepositoriesFetchRequested(userLogin);
+        userFetchRequested(token);
+        userRepositoriesFetchRequested(token);
 
     };
+
+    deleteOAuth(event , token, clientId) {
+        event.preventDefault();
+        axios.delete(`https://api.github.com/application/${clientId}/grant`,token)
+    }
 
     componentDidUpdate(){
         console.log(this.state.token);
@@ -287,12 +196,10 @@ export default class App extends React.Component {
             }
         );
         
-        const code = window.location.href.match(/\?code=(.*)/)[1]/*window.location.href.substring(28)*/;
-        //console.log(code);
-
+        const code = window.location.href.match(/\?code=(.*)/) && window.location.href.match(/\?code=(.*)/)[1];
         if(code){
             this.setState({ oAuthStatus:"In progress" });
-            axios.get(`https://simple-o-auth.herokuapp.com/authenticate/${code}`/*`https://git.heroku.com/simple-o-auth.git/authenticate/${code}`*/)
+            axios.get(`https://simple-o-auth.herokuapp.com/authenticate/${code}`)
                 .then(userToken => this.setState(
                     {
                         token:userToken.data,
@@ -301,15 +208,17 @@ export default class App extends React.Component {
                 )
             )
         }
-        //console.log(this.state.token);
     }
 
 
     render(){
         //console.log(this.props)
         //const dispatch = this.props.dispatch;
-        const {globalRepositoriesList,isLoaded} = this.state;
-        const {login,password,changeLogin,changePassword,user,userRepositories,clientId/*, globalRepositoriesList*/} = this.props;//destructor
+        /*const deleteBtn = <div>
+        <button  className="deleteAuth" onClick={(event) => this.deleteOAuth(event,this.state.token, clientId)}>Logg Out</button> 
+        </div>*/
+        const {globalRepositoriesList,isLoaded, token} = this.state;
+        const {pressedSignInButton,user,userRepositories,clientId} = this.props;//destructor
         const globalList = isLoaded ? 
         <ul className="topTierList">
             {globalRepositoriesList.items.map(item => (
@@ -318,7 +227,6 @@ export default class App extends React.Component {
                 </li>
             ))}
         </ul> : "loading..." ;
-        //console.log(this.state);
         return (
             <div className="root">
                 <div className="mainComponent">
@@ -327,18 +235,12 @@ export default class App extends React.Component {
                             <h2>Sign In</h2>
                         </div>
                         <form className="loginForm">
-                            <div className="inputContainer">
-                                <input type="text" onChange={(event) => {/*dispatch(changeLogin(event.target.value))*/changeLogin(event.target.value)}} value={login} name="login" placeholder="login"/>
-                            </div>
-                            <div className="inputContainer">
-                                <input type="password" onChange={(event) => {/*dispatch(changePassword(event.target.value))*/changePassword(event.target.value)}} value={password} name="password" placeholder="Password"/>
-                            </div>
                             <div className ="buttonContainer">
                                 <div>
-                                    <a href={`https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&redirect_uri=${REDIRECT_URI}`} onClick={pressedSignInButton()}>Logg In</a>
+                                    <a style={{display: this.state.oAuthStatus === "Not Loaded" ? "inline" : "none" }} href={`https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&redirect_uri=${REDIRECT_URI}`} onClick={pressedSignInButton}>Logg In</a>
                                 </div>
                                 <div>
-                                    <button className="getUserInfo" onClick={(event)=>this.catchUserProfile(event,login)}>Get Info</button>
+                                    <button className="getUserInfo" onClick={(event)=>this.catchUserProfile(event, token)}>Get Info</button>
                                 </div>
                             </div>
                             <div className="userInfoContainer">
@@ -381,8 +283,6 @@ const putStateToProps = (state) =>{
     //console.log(state);
     return{
         clientId:state.clientId,
-        login: state.login,
-        password: state.password,
         user: state.user,
         isLoaded: state.isLoaded,
         userRepositories: state.userRepositories,
@@ -397,11 +297,8 @@ const putStateToProps = (state) =>{
 //Link dispatch functions to properties(props)
 const putActionsToProps = (dispatch) => {
     return{
-        changeLogin: bindActionCreators(changeLogin, dispatch),
-        changePassword: bindActionCreators(changePassword, dispatch),
         verrifiedUser: bindActionCreators(verrifiedUser, dispatch),
         loadedRepositories: bindActionCreators(loadedRepositories, dispatch),
-        catchedUserToken: bindActionCreators(catchedUserToken, dispatch),
         loadedGlobalRepositories: bindActionCreators(loadedGlobalRepositories, dispatch),
         pressedSignInButton: bindActionCreators(pressedSignInButton, dispatch),
         userFetchRequested: bindActionCreators(userFetchRequested, dispatch),
