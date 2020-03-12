@@ -1,12 +1,18 @@
-/*import React from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { render } from '@testing-library/react';
 import axios from 'axios';
 
 
+export default class ReposDashboard extends React.Component {
 
-export default class ReposDashboard extends React.Component () {
-    
+    constructor(props) {
+        super(props);
+        this.state = {
+            globalRepositoriesList: null,
+            isLoaded: false,
+        }
+    }
 
     componentDidMount(){
 
@@ -22,6 +28,22 @@ export default class ReposDashboard extends React.Component () {
             }
         );
     }
-    
 
-}*/
+    render() {
+        const {globalRepositoriesList,isLoaded} = this.state;
+        const globalList = isLoaded ? 
+        <ul className="topTierList">
+            {globalRepositoriesList.items.map(item => (
+                <li className="topTierListElement"  key={item.name}>
+                    Repository '{item.name}' created by owner {item.owner.login}
+                </li>
+            ))}
+        </ul> : "loading..." ;
+        return(
+            <div className="topTierRepositoriesContainer">
+            Top tier of repositories with highest numbers of stars
+            {globalList}
+        </div>
+        )
+    }
+}
