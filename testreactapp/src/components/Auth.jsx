@@ -9,7 +9,7 @@ constructor(props){
 }
 
     render(){
-        const {clientId} = this.props;//destructor
+        const {clientId,loadingStatus} = this.props;//destructor
         return(
             <div className="formLoginContainer">
                 <div className="h2">
@@ -18,7 +18,8 @@ constructor(props){
                 <form className="loginForm">
                     <div className ="buttonContainer">
                         <div>
-                            <a /*style={{display: this.state.oAuthStatus === "Not Loaded" ? "inline" : "none" }}*/ href={`https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&redirect_uri=${REDIRECT_URI}`}>Logg In</a>
+                            <a style={{display: loadingStatus === "Not Loaded" ? "inline" : "none" }} href={`https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&redirect_uri=${REDIRECT_URI}`}>Logg In</a>
+                            <p style={{display: loadingStatus === "Loaded" ? "inline" : "none" }}>Authorization and authentification complete</p>
                         </div>
                     </div>
                 </form>

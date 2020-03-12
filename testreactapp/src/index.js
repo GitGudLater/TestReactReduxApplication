@@ -13,7 +13,9 @@ import { verrifiedUser,
         loadedGlobalRepositories,
         pressedSignInButton,
         userFetchRequested,
-        userRepositoriesFetchRequested } from "./store/actions";
+        userRepositoriesFetchRequested,
+        userTokenCatched,
+        newTokenStatus } from "./store/actions";
 import {rootSaga} from './store/saga';
 import App from './App';
 
@@ -34,10 +36,11 @@ const putStateToProps = (state) =>{
     return{
         clientId:state.clientId,
         user: state.user,
-        isLoaded: state.isLoaded,
+        loadingStatus: state.loadingStatus,
         userRepositories: state.userRepositories,
         userToken: state.userToken,
-        globalRepositoriesList: state.globalRepositoriesList
+        globalRepositoriesList: state.globalRepositoriesList,
+        
     };
 };
 
@@ -52,7 +55,9 @@ const putActionsToProps = (dispatch) => {
         loadedGlobalRepositories: bindActionCreators(loadedGlobalRepositories, dispatch),
         pressedSignInButton: bindActionCreators(pressedSignInButton, dispatch),
         userFetchRequested: bindActionCreators(userFetchRequested, dispatch),
-        userRepositoriesFetchRequested: bindActionCreators(userRepositoriesFetchRequested, dispatch)
+        userRepositoriesFetchRequested: bindActionCreators(userRepositoriesFetchRequested, dispatch),
+        newTokenStatus: bindActionCreators(newTokenStatus, dispatch),
+        userTokenCatched: bindActionCreators(userTokenCatched, dispatch)
     };
 };
 

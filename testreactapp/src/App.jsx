@@ -6,9 +6,6 @@ import UserInfo from './components/UserInfo';
 import ReposDashboard from './components/ReposDashboard';
 
 
-
-
-
 export default class App extends React.Component {
 
     constructor(props) {
@@ -18,15 +15,12 @@ export default class App extends React.Component {
 
 
     render(){
-        /*const deleteBtn = <div>
-        <button  className="deleteAuth" onClick={(event) => this.deleteOAuth(event,this.state.token, clientId)}>Logg Out</button> 
-        </div>*/
-        const {user,userRepositories,clientId,userFetchRequested,userRepositoriesFetchRequested} = this.props;//destructor
+        const {userToken,loadingStatus,user,userRepositories,clientId,userFetchRequested,userRepositoriesFetchRequested, newTokenStatus, userTokenCatched} = this.props;//destructor
         return (
             <div className="root">
                 <div className="mainComponent">
-                    <Auth clientId={clientId}/>
-                    <UserInfo userRepositoriesFetchRequested={userRepositoriesFetchRequested} userFetchRequested={userFetchRequested} user={user} userRepositories={userRepositories}/>
+                    <Auth clientId={clientId} userToken={userToken} loadingStatus={loadingStatus}/>
+                    <UserInfo userRepositoriesFetchRequested={userRepositoriesFetchRequested} userFetchRequested={userFetchRequested} user={user} userRepositories={userRepositories} newTokenStatus={newTokenStatus} userTokenCatched={userTokenCatched}/>
                     <ReposDashboard/>
                 </div>
             </div>

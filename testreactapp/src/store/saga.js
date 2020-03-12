@@ -1,4 +1,4 @@
-import { ACTION_CATCHED_USER_PROFILE, ACTION_CATCHED_REPOSITORIES, ACTION_CATCHED_GLOBAL_REPOSITORIES, ACTION_PRESS_SIGNIN_BUTTON, ACTION_USER_FETCH_REQUESTED, ACTION_USER_REPOSITORIES_FETCH_REQUESTED,verrifiedUser, loadedRepositories,loadedGlobalRepositories,pressedSignInButton,userFetchRequested,userRepositoriesFetchRequested } from './actions';
+import { ACTION_USER_FETCH_REQUESTED, ACTION_USER_REPOSITORIES_FETCH_REQUESTED,verrifiedUser, loadedRepositories, ACTION_CATCHED_USER_TOKEN, ACTION_NEW_TOKEN_STATUS, userTokenSet, userTokenStatus } from './actions';
 import { all ,call, put, takeEvery, takeLatest } from 'redux-saga/effects';
 import axios from 'axios';
 
@@ -13,19 +13,36 @@ function* fetchUserRepositories(action) {
     yield put(loadedRepositories(result));
 }
 
+function* putUserToken(action){
+    yield put(userTokenSet(action.payload));
+}
+
+function* changeTokenLoadingStatus(action){
+    yield put(userTokenStatus(action.payload));
+}
+
 
 function* userSaga() {
     yield takeEvery(ACTION_USER_FETCH_REQUESTED, fetchUser);
   }
 
   function* userReposSaga() {
-    yield takeEvery(ACTION_USER_REPOSITORIES_FETCH_REQUESTED,fetchUserRepositories)
+    yield takeEvery(ACTION_USER_REPOSITORIES_FETCH_REQUESTED,fetchUserRepositories);
   }
 
+  function* userTokenSaga() {
+    yield takeEvery(ACTION_CATCHED_USER_TOKEN,putUserToken);
+  }
+
+  function* userTokenStatusSaga() {
+    yield takeEvery(ACTION_NEW_TOKEN_STATUS,changeTokenLoadingStatus) ;
+  }
 
 export function* rootSaga() {
     yield all([
       userSaga(),
-      userReposSaga()
+      userReposSaga(),
+      userTokenSaga(),
+      userTokenStatusSaga()
     ])
   }

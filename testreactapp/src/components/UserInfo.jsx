@@ -20,11 +20,13 @@ export default class UserInfo extends React.Component{
         e.preventDefault();
         userFetchRequested(token);
         userRepositoriesFetchRequested(token);
-
     };
 
     componentDidUpdate(){
+        const {newTokenStatus, userTokenCatched} = this.props;
         console.log(this.state.token);
+        newTokenStatus(this.state.oAuthStatus);
+        userTokenCatched(this.state.token);
     }
 
     componentDidMount(){

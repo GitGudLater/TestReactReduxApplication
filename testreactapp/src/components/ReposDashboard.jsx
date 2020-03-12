@@ -30,7 +30,7 @@ export default class ReposDashboard extends React.Component {
     render() {
         const {globalRepositoriesList,isLoaded} = this.state;
         const globalList = isLoaded ? 
-        <ul className="topTierList">
+        <ul type="none" className="topTierList">
             {globalRepositoriesList.items.map(item => (
                 <li className="topTierListElement"  key={item.name}>
                     Repository '{item.name}' created by owner {item.owner.login}
