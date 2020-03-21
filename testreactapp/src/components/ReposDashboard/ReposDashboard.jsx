@@ -1,5 +1,6 @@
 import React from 'react';
 import axios from 'axios';
+import {ReposDashboardStyle} from './ReposDashboardStyle';
 
 
 export default class ReposDashboard extends React.Component {
@@ -17,7 +18,6 @@ export default class ReposDashboard extends React.Component {
     }
 
     componentDidMount(){
-
         axios.get(`https://api.github.com/search/repositories?q=stars:>=500&sort=stars&order=desc&per_page=5&page=1`)
         .then(
             result => {
@@ -71,12 +71,12 @@ export default class ReposDashboard extends React.Component {
             ))}
         </ul> : "loading..." ;
         return(
-            <div className="topTierRepositoriesContainer">
-                Top tier of repositories with highest numbers of stars
-                <button style={{display: page > 1 ? "inline" : "none" }} className="previousPageBtn" onClick={(event) => this.decrementPageFunction(event)}>Previous page</button>
-                <button style={{display: globalList == [] ? "none" : "inline" }} className="nextPageBtn" onClick={(event) =>this.incrementPageFunction(event)}>Next page</button>
-                {globalList}
-            </div>
+                <ReposDashboardStyle className="topTierRepositoriesContainer">
+                    Top tier of repositories with highest numbers of stars
+                    <button style={{display: page > 1 ? "inline" : "none" }} className="previousPageBtn" onClick={(event) => this.decrementPageFunction(event)}>Previous page</button>
+                    <button style={{display: globalList == [] ? "none" : "inline" }} className="nextPageBtn" onClick={(event) =>this.incrementPageFunction(event)}>Next page</button>
+                    {globalList}
+                </ReposDashboardStyle>
         )
     }
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import axios from 'axios';
+import {UserInfoStyle} from './UserInfoStyle';
 
 
 
@@ -48,27 +49,28 @@ export default class UserInfo extends React.Component{
         const {token} = this.state;
         const {user,userRepositories} = this.props;//destructor
         return(
-            <div className="userRepositoriesContainer">
-                <div>
-                    <button className="getUserInfo" onClick={(event)=>this.catchUserProfile(event, token)}>Get Info</button>
-                </div>
-                <div className="userInfoContainer">
-                    <div className="userNameContainer">
-                        {user.name}
+                <UserInfoStyle className="userRepositoriesContainer"> 
+                    <div>
+                        <button className="getUserInfo" onClick={(event)=>this.catchUserProfile(event, token)}>Get Info</button>
                     </div>
-                    <div className="userAvatarContainer">
-                        <img src={user.avatar_url}/>
+                    <div className="userInfoContainer">
+                        <div className="userNameContainer">
+                            {user.name}
+                        </div>
+                        <div className="userAvatarContainer">
+                            <img src={user.avatar_url}/>
+                        </div>
                     </div>
-                </div>
-                Repositories that this person owned
-                <ul className = "userRepositoriesList">
-                    {userRepositories.map(item => (
-                        <li className = "userRepositoriesListElement" key={item.name}>
-                            {item.name}
-                        </li>
-                    ))}
-                </ul>
-            </div>            
+                    Repositories that this person owned
+                    <ul className = "userRepositoriesList">
+                        {userRepositories.map(item => (
+                            <li className = "userRepositoriesListElement" key={item.name}>
+                                {item.name}
+                            </li>
+                        ))}
+                    </ul>
+                </UserInfoStyle>
+            
         )
     }
 }
